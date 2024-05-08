@@ -17,7 +17,8 @@ public class WebSecurityConfig {
         .httpBasic()
         .disable()
         .formLogin()
-        .disable();
+        .disable()
+        .oauth2Client();
     return http.build();
   }
 }

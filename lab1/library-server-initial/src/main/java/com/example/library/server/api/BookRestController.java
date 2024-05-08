@@ -7,10 +7,12 @@ import com.example.library.server.api.resource.assembler.BookResourceAssembler;
 import com.example.library.server.business.BookService;
 import com.example.library.server.dataaccess.Book;
 import com.example.library.server.security.LibraryUser;
+import com.example.library.server.security.LibraryUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,10 +35,13 @@ import java.util.UUID;
 public class BookRestController {
 
   private final BookService bookService;
+  private final LibraryUserDetailsService libraryUserDetailsService;
 
   @Autowired
-  public BookRestController(BookService bookService) {
+  public BookRestController(
+    BookService bookService, LibraryUserDetailsService libraryUserDetailsService) {
     this.bookService = bookService;
+    this.libraryUserDetailsService = libraryUserDetailsService;
   }
 
   @ResponseStatus(HttpStatus.OK)
@@ -56,7 +61,13 @@ public class BookRestController {
 
   @PostMapping("/{bookId}/borrow")
   public ResponseEntity<BookResource> borrowBookById(
-      @PathVariable("bookId") UUID bookId, @AuthenticationPrincipal LibraryUser libraryUser) {
+      @PathVariable("bookId") UUID bookId, @AuthenticationPrincipal JwtAuthenticationToken jwtAuthenticationToken) {
+
+      LibraryUser libraryUser =
+      (LibraryUser)
+          libraryUserDetailsService.loadUserByUsername(
+              (String) jwtAuthenticationToken.getTokenAttributes().get("email"));
+
     return bookService
         .findByIdentifier(bookId)
         .map(
@@ -72,7 +83,13 @@ public class BookRestController {
 
   @PostMapping("/{bookId}/return")
   public ResponseEntity<BookResource> returnBookById(
-      @PathVariable("bookId") UUID bookId, @AuthenticationPrincipal LibraryUser libraryUser) {
+      @PathVariable("bookId") UUID bookId, @AuthenticationPrincipal JwtAuthenticationToken jwtAuthenticationToken) {
+
+      LibraryUser libraryUser =
+      (LibraryUser)
+          libraryUserDetailsService.loadUserByUsername(
+              (String) jwtAuthenticationToken.getTokenAttributes().get("email"));
+
     return bookService
         .findByIdentifier(bookId)
         .map(

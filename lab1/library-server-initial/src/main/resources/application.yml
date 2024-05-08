@@ -12,6 +12,11 @@ spring:
   jackson:
     date-format: com.fasterxml.jackson.databind.util.StdDateFormat
     default-property-inclusion: non_null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycolak.minikube:1443/realms/workshop
 
 logging:
   level:

@@ -3,6 +3,8 @@ package com.example.library.client.credentials.web;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +24,14 @@ public class BooksController {
   }
 
   @GetMapping("/")
-  Mono<String> index(Model model) {
+  Mono<String> index(
+    @RegisteredOAuth2AuthorizedClient("keycloak_client") OAuth2AuthorizedClient authorizedClient,
+    Model model) {
 
     return webClient
         .get()
         .uri(libraryServer + "/books")
+        .headers(h -> h.setBearerAuth(authorizedClient.getAccessToken().getTokenValue()))
         .retrieve()
         .onStatus(
             s -> s.equals(HttpStatus.UNAUTHORIZED),

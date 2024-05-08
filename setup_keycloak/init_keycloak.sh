@@ -1,10 +1,11 @@
 #!/bin/sh
 
-export KEYCLOAK_HOME=/home/afa/development/keycloak-6.0.1
-export PATH=$PATH:$KEYCLOAK_HOME/bin
+#export KEYCLOAK_HOME=/home/afa/development/keycloak-6.0.1
+#export PATH=$PATH:$KEYCLOAK_HOME/bin
 
 #-- login
-kcadm.sh config credentials --server http://localhost:8080/auth --realm master --user admin --password admin
+kcadm.sh config truststore /usr/local/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home/lib/security/cacerts --trustpass changeit
+kcadm.sh config credentials --server https://keycolak.minikube:1443 --realm master --user admin --password admin888
 
 #-- create realm 'workshop'
 kcadm.sh create realms -s realm=workshop -s enabled=true
@@ -101,3 +102,82 @@ kcadm.sh create clients/$library_clientid/protocol-mappers/models -r workshop -f
     }
 }
 EOF
+
+# Create client-scope
+
+kcadm.sh create client-scopes -r workshop -f - << EOF
+{
+  "name" : "library_user",
+  "description" : "library_user",
+  "protocol" : "openid-connect",
+  "attributes" : {
+    "include.in.token.scope" : "true",
+    "display.on.consent.screen" : "true",
+    "gui.order" : "",
+    "consent.screen.text" : ""
+  }
+}
+EOF
+
+kcadm.sh create client-scopes -r workshop -f - << EOF
+{
+  "name" : "library_curator",
+  "description" : "library_curator",
+  "protocol" : "openid-connect",
+  "attributes" : {
+    "include.in.token.scope" : "true",
+    "display.on.consent.screen" : "true",
+    "gui.order" : "",
+    "consent.screen.text" : ""
+  }
+}
+EOF
+
+kcadm.sh create client-scopes -r workshop -f - << EOF
+{
+  "name" : "library_admin",
+  "description" : "library_admin",
+  "protocol" : "openid-connect",
+  "attributes" : {
+    "include.in.token.scope" : "true",
+    "display.on.consent.screen" : "true",
+    "gui.order" : "",
+    "consent.screen.text" : ""
+  }
+}
+EOF
+
+# Add role scope mapping
+
+library_user_client_scope_id=$(kcadm.sh get -r workshop client-scopes | jq -r '.[] | select(.name | contains("library_user")).id')
+library_curator_client_scope_id=$(kcadm.sh get -r workshop client-scopes | jq -r '.[] | select(.name | contains("library_curator")).id')
+library_admin_client_scope_id=$(kcadm.sh get -r workshop client-scopes | jq -r '.[] | select(.name | contains("library_admin")).id')
+
+library_user_role_id=$(kcadm.sh get roles -r workshop | jq -r '.[] | select(.name | contains("library_user")).id')
+library_curator_role_id=$(kcadm.sh get roles -r workshop | jq -r '.[] | select(.name | contains("library_curator")).id')
+library_admin_role_id=$(kcadm.sh get roles -r workshop | jq -r '.[] | select(.name | contains("library_admin")).id')
+
+kcadm.sh create client-scopes/$library_user_client_scope_id/scope-mappings/realm -r workshop -f - << EOF
+[{
+  "id": "$library_user_role_id"
+}]
+EOF
+
+kcadm.sh create client-scopes/$library_curator_client_scope_id/scope-mappings/realm -r workshop -f - << EOF
+[{
+  "id": "$library_curator_role_id"
+}]
+EOF
+
+kcadm.sh create client-scopes/$library_admin_client_scope_id/scope-mappings/realm -r workshop -f - << EOF
+[{
+  "id": "$library_admin_role_id"
+}]
+EOF
+
+
+# Add client scope to client
+
+kcadm.sh update -r workshop clients/$library_clientid/default-client-scopes/$library_user_client_scope_id
+kcadm.sh update -r workshop clients/$library_clientid/default-client-scopes/$library_curator_client_scope_id
+kcadm.sh update -r workshop clients/$library_clientid/default-client-scopes/$library_admin_client_scope_id

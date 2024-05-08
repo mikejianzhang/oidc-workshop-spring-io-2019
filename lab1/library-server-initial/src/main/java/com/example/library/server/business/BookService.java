@@ -32,7 +32,7 @@ public class BookService {
   }
 
   @Transactional
-  @PreAuthorize("hasRole('LIBRARY_CURATOR')")
+  @PreAuthorize("hasRole('LIBRARY_CURATOR') || hasAuthority('SCOPE_library_curator')")
   public UUID create(Book book) {
     if (book.getIdentifier() == null) {
       book.setIdentifier(idGenerator.generateId());
@@ -41,7 +41,7 @@ public class BookService {
   }
 
   @Transactional
-  @PreAuthorize("hasRole('LIBRARY_CURATOR')")
+  @PreAuthorize("hasRole('LIBRARY_CURATOR') || hasAuthority('SCOPE_library_curator')")
   public UUID update(Book book) {
     return bookRepository.save(book).getIdentifier();
   }
@@ -57,7 +57,7 @@ public class BookService {
   }
 
   @Transactional
-  @PreAuthorize("hasRole('LIBRARY_USER')")
+  @PreAuthorize("hasRole('LIBRARY_USER') || hasAuthority('SCOPE_library_user')")
   public void borrowById(UUID bookIdentifier, UUID userIdentifier) {
 
     if (bookIdentifier == null || userIdentifier == null) {
@@ -78,7 +78,7 @@ public class BookService {
   }
 
   @Transactional
-  @PreAuthorize("hasRole('LIBRARY_USER')")
+  @PreAuthorize("hasRole('LIBRARY_USER') || hasAuthority('SCOPE_library_user')")
   public void returnById(UUID bookIdentifier, UUID userIdentifier) {
 
     if (bookIdentifier == null || userIdentifier == null) {
@@ -104,7 +104,7 @@ public class BookService {
   }
 
   @Transactional
-  @PreAuthorize("hasRole('LIBRARY_CURATOR')")
+  @PreAuthorize("hasRole('LIBRARY_CURATOR') || hasAuthority('SCOPE_library_curator')")
   public void deleteByIdentifier(UUID bookIdentifier) {
     bookRepository.deleteBookByIdentifier(bookIdentifier);
   }

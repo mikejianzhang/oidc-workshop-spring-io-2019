@@ -6,12 +6,12 @@ spring:
       client:
         registration:
           github:
-            client-id: <clientid>
-            client-secret: <client_secret>
+            client-id: 182d64b36e561edddbdd
+            client-secret: 0e13e460986b6925d55a6da5a7c325286f7cb9ed
             scope:
               - read:user
               - notifications
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            redirect-uri: 'http://localhost:9090/login/oauth2/code/github'
 github:
   base:
     url: https://api.github.com/
